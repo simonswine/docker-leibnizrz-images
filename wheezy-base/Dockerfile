@@ -12,5 +12,5 @@ RUN apt-get -y upgrade && apt-get clean
 # Installiere Tools
 RUN apt-get -y install vim git procps psmisc wget supervisor nano pwgen tzdata rsync && apt-get clean
 
-# Setze Zeitzone
+# Setze deutsche Zeitzone
 RUN echo "Europe/Berlin" > /etc/timezone  &&  dpkg-reconfigure -f noninteractive tzdata

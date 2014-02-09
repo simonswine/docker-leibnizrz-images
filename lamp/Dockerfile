@@ -19,6 +19,10 @@ ADD ./apache.foreground.sh /etc/apache2/foreground.sh
 ADD ./supervisord.apache.conf /etc/supervisor/conf.d/apache.conf
 # Apache Standard vHost Konfiguration
 ADD ./apache.sites.default.conf /etc/apache2/sites-available/default
+# Clear Webroot
+RUN rm -rf /var/www/*
+# Webroot als Volume
+VOLUME ["/var/www"] 
 
 ## MySQL
 # Füge MySQL User/Group hinzu um stabile uid/gid zu erhalten
@@ -30,13 +34,16 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get -y install mysql-server phpmyadmin &&
 VOLUME ["/var/lib/mysql"]
 # MySQL Startkonfig
 ADD ./supervisord.mysql.conf /etc/supervisor/conf.d/mysql.conf
-# Füge Init Skript hinzu
-ADD init_050-mysql.sh /.docker/init/50-mysql
-RUN chmod +x /.docker/init/50-mysql
+# MySQL Initialisierung (Ändert root Passwort)
+ADD init_050-mysql.sh /.docker/init/050-mysql
+RUN chmod +x /.docker/init/050-mysql
+# Entferne bereits bestehende MySQL Datenbanken 
+RUN rm -rf /var/lib/mysql/*
 # Aktiviere phpmyadmin
 RUN echo "phpmyadmin phpmyadmin/reconfigure-webserver multiselect apache2" | debconf-set-selections -v && dpkg-reconfigure -f noninteractive phpmyadmin
-# Entferne MySQL Datenbanken 
-RUN rm -rf /var/lib/mysql/*
+# phpmyadminL Initialisierung (Ändert MySQL-Passwort / legt Datenbankschema an)
+ADD init_025-phpmyadmin.sh /.docker/init/025-phpmyadmin
+RUN chmod +x /.docker/init/025-phpmyadmin
 
 # Port 80 soll veröffentlicht werden
 EXPOSE 80
