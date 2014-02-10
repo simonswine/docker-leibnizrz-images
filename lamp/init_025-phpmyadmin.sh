@@ -12,5 +12,11 @@ echo ""
 echo "phpmyadmin phpmyadmin/mysql/app-pass password ${pw_mysql_phpmyadmin}" | debconf-set-selections -v
 dpkg-reconfigure -f noninteractive phpmyadmin
 
-# Upgrade Passwords in MySQL
-mysql -u root -e "SET PASSWORD FOR 'phpmyadmin'@'localhost' = PASSWORD('${pw_mysql_phpmyadmin}');"
+# MySQL: Create database, add user and grant rights 
+mysql -u root -e "
+    create database phpmyadmin;
+    grant usage on *.* to phpmyadmin@localhost identified by '${pw_mysql_phpmyadmin}';
+    grant all privileges on phpmyadmin.* to phpmyadmin@localhost;"
+
+# Install tables
+cat /usr/share/dbconfig-common/data/phpmyadmin/install/mysql | mysql -u root phpmyadmin
